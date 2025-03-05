@@ -22,7 +22,7 @@ public class SimHash {
 
     // 计算 SimHash
     public static String getSimHash(String text) {
-        if (text.length() < 66) {
+        if (text.length() < 10) {
             System.out.println("输入文本过短");
             return "";
         }

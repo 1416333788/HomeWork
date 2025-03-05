@@ -17,22 +17,28 @@
 
     <!-- 依赖管理 -->
     <dependencies>
-        <!-- 1. JUnit 4（单元测试框架） -->
+        <!-- JUnit 5（单元测试框架） -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.7.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.7.2</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- 2. HanLP（中文分词工具，用于 SimHash 计算） -->
+        <!-- HanLP（中文分词工具，用于 SimHash 计算） -->
         <dependency>
             <groupId>com.hankcs</groupId>
             <artifactId>hanlp</artifactId>
             <version>portable-1.5.4</version>
         </dependency>
 
-        <!-- 3. SLF4J（日志框架，与 HanLP 兼容） -->
+        <!-- SLF4J（日志框架，与 HanLP 兼容） -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
