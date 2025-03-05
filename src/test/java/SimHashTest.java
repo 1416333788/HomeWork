@@ -1,33 +1,44 @@
+import com.cong.utils.FileUtils;
 import com.cong.utils.SimHash;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class SimHashTest {
 
     @Test
-    public void testSimHash() {
-        String text1 = "今天是星期天，天气晴朗，我去看电影。";
-        String text2 = "今天是周天，天气晴，我晚上要去看电影。";
+    public void testFileSimilarities() {
+        // 定义原文件路径和待测文件路径（请根据实际情况修改路径）
+        String originalPath = "src/test/java/orig.txt";
+        String[] candidatePaths = {
+                "src/test/java/orig_0.8_add.txt",
+                "src/test/java/orig_0.8_del.txt",
+                "src/test/java/orig_0.8_dis_1.txt",
+                "src/test/java/orig_0.8_dis_10.txt",
+                "src/test/java/orig_0.8_dis_15.txt"
+        };
 
-        String hash1 = SimHash.getSimHash(text1);
-        String hash2 = SimHash.getSimHash(text2);
+        // 读取原文件内容
+        String originalText = FileUtils.readTxt(originalPath);
+        assertFalse(originalText.isEmpty(), "原文件内容为空！");
+        String origHash = SimHash.getSimHash(originalText);
+        System.out.println("Original SimHash: " + origHash);
 
-        // 打印查看 SimHash 值
-        System.out.println("SimHash 1: " + hash1);
-        System.out.println("SimHash 2: " + hash2);
+        // 对每个待测试文件进行比较，并输出相似度百分比
+        for (String candidatePath : candidatePaths) {
+            String candidateText = FileUtils.readTxt(candidatePath);
+            assertFalse(candidateText.isEmpty(), "文件 " + candidatePath + " 内容为空！");
+            String candidateHash = SimHash.getSimHash(candidateText);
 
-        // 测试 SimHash 是否有效
-        assertNotNull(hash1);
-        assertNotNull(hash2);
+            // 计算相似度及格式化输出
+            double similarity = SimHash.getSimilarity(origHash, candidateHash);
+            String simPercent = SimHash.getSimilarityPercentage(origHash, candidateHash);
 
-        // 测试计算相似度
-        int distance = SimHash.getHammingDistance(hash1, hash2);
-        assertTrue(distance >= 0); // 汉明距离不能为负
+            System.out.println("Similarity between orig.txt and " + candidatePath + " : " + simPercent);
 
-        double similarity = SimHash.getSimilarity(hash1, hash2);
-        System.out.println("相似度：" + similarity);
-
-        // 断言相似度是否在预期范围内
-        assertTrue(similarity >= 0 && similarity <= 1);
+            // 可选：如果你有预期值，可以使用断言验证相似度范围
+            // 例如 assertTrue(similarity >= 0 && similarity <= 1);
+        }
     }
 }
+

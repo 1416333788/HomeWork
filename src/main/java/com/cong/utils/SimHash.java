@@ -8,83 +8,104 @@ import java.util.List;
 
 public class SimHash {
 
-    // 计算字符串的 MD5 哈希值，并转换为 128 位二进制字符串
-    public static String getHash(String str) {
+    /**
+     * 计算字符串的 MD5 哈希值，并转换为二进制字符串
+     *
+     * @param str 输入字符串
+     * @return 二进制哈希字符串
+     */
+    private static String getHash(String str) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] hashBytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
-            return new BigInteger(1, hashBytes).toString(2); // 二进制格式返回
+            return new BigInteger(1, hashBytes).toString(2);
         } catch (Exception e) {
             e.printStackTrace();
-            return str;  // 出错时返回原始字符串
+            return "";
         }
     }
 
-    // 计算 SimHash
+    /**
+     * 计算文本的 SimHash 值（128位二进制字符串）
+     *
+     * @param text 输入文本
+     * @return SimHash 字符串
+     */
     public static String getSimHash(String text) {
-        if (text.length() < 10) {
-            System.out.println("输入文本过短");
+        if (text.length() < 10) { // 调整最低长度要求
+            System.err.println("输入文本过短");
             return "";
         }
 
-        int[] weight = new int[128]; // 128 位权重数组
-        List<String> keywords = HanLP.extractKeyword(text, text.length()); // 提取关键词
+        int[] weight = new int[128];
+        List<String> keywords = HanLP.extractKeyword(text, text.length());
         int size = keywords.size();
 
         for (int i = 0; i < size; i++) {
-            String keyword = keywords.get(i);
-            String hash = getHash(keyword);
-
-            // 补全到 128 位
-            StringBuilder hashBuilder = new StringBuilder(hash);
-            while (hashBuilder.length() < 128) {
-                hashBuilder.append("0");
+            String keywordHash = getHash(keywords.get(i));
+            if (keywordHash.length() < 128) {
+                keywordHash = String.format("%128s", keywordHash).replace(' ', '0');
             }
-            hash = hashBuilder.toString();
-
-            // 更新权重
-            for (int j = 0; j < weight.length; j++) {
-                weight[j] += (hash.charAt(j) == '1' ? 1 : -1);
+            for (int j = 0; j < 128; j++) {
+                // 简化权重计算，正负权重各加1或减1
+                weight[j] += (keywordHash.charAt(j) == '1') ? 1 : -1;
             }
         }
 
-        // 生成最终 SimHash 值
         StringBuilder simHash = new StringBuilder();
-        for (int w : weight) {
-            simHash.append(w > 0 ? "1" : "0");
+        for (int v : weight) {
+            simHash.append(v > 0 ? '1' : '0');
         }
         return simHash.toString();
     }
 
-    // 计算两个 SimHash 之间的海明距离
-    public static int getHammingDistance(String simHash1, String simHash2) {
-        if (simHash1.length() != simHash2.length()) {
+    /**
+     * 计算两个 SimHash 值之间的汉明距离
+     *
+     * @param hash1 SimHash 值1
+     * @param hash2 SimHash 值2
+     * @return 汉明距离
+     */
+    public static int getHammingDistance(String hash1, String hash2) {
+        if (hash1.length() != hash2.length()) {
+            System.err.println("SimHash 长度不匹配，无法计算汉明距离");
             return -1;
         }
+
         int distance = 0;
-        for (int i = 0; i < simHash1.length(); i++) {
-            if (simHash1.charAt(i) != simHash2.charAt(i)) {
+        for (int i = 0; i < hash1.length(); i++) {
+            if (hash1.charAt(i) != hash2.charAt(i)) {
                 distance++;
             }
         }
         return distance;
     }
 
-    // 计算相似度（基于海明距离）
-    private static double getSimilarity(int distance) {
-        return 1.0 - distance / 128.0;
-    }
-
-    // 计算两个文本的相似度
-    public static double getSimilarity(String text1, String text2) {
-        String simHash1 = getSimHash(text1);
-        String simHash2 = getSimHash(text2);
-
-        if (simHash1.isEmpty() || simHash2.isEmpty()) {
+    /**
+     * 计算两个 SimHash 值的相似度（0到1之间的小数）
+     *
+     * @param hash1 SimHash 值1
+     * @param hash2 SimHash 值2
+     * @return 相似度
+     */
+    public static double getSimilarity(String hash1, String hash2) {
+        int hammingDistance = getHammingDistance(hash1, hash2);
+        if (hammingDistance < 0) {
             return 0.0;
         }
+        return 1 - (hammingDistance / 128.0);
+    }
 
-        int hammingDistance = getHammingDistance(simHash1, simHash2);
-        return getSimilarity(hammingDistance);
+    /**
+     * 计算相似度，并返回格式为 "百分之XX.XX" 的字符串
+     *
+     * @param hash1 SimHash 值1
+     * @param hash2 SimHash 值2
+     * @return 格式化的相似度字符串，例如 "百分之98.12"
+     */
+    public static String getSimilarityPercentage(String hash1, String hash2) {
+        double similarity = getSimilarity(hash1, hash2);
+        double percentage = similarity * 100;
+        return "百分之" + String.format("%.2f", percentage);
     }
 }
