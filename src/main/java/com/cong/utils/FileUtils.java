@@ -8,7 +8,14 @@ public class FileUtils {
     // 读取文件内容
     public static String readTxt(String txtPath) {
         StringBuilder content = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(txtPath), StandardCharsets.UTF_8))) {
+        File file = new File(txtPath);
+
+        // 如果文件不存在，直接返回空字符串
+        if (!file.exists()) {
+            return "";
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 content.append(line);
@@ -18,6 +25,7 @@ public class FileUtils {
         }
         return content.toString();
     }
+
 
     // 写入内容到文件
     public static void writeTxt(String content, String txtPath) {
