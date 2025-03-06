@@ -39,5 +39,7 @@ public class Main {
 
             System.out.println("Similarity between orig.txt and " + candidatePath + " : " + simPercent);
         }
+
+
     }
 }
